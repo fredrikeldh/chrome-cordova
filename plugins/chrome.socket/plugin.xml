@@ -29,6 +29,16 @@
     </config-file>
   </platform>
 
+	<platform name="wp8">
+		<source-file src="src/wp8/ChromeSocket.cs" />
+
+		<config-file target="config.xml" parent="/widget">
+			<feature name="ChromeSocket">
+				<param name="wp-package" value="ChromeSocket" />
+			</feature>
+		</config-file>
+	</platform>
+
   <platform name="ios">
     <framework src="Security.framework" />
     <framework src="CFNetwork.framework" />

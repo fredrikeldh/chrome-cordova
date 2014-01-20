@@ -4,6 +4,7 @@
 
 var platform = cordova.require('cordova/platform');
 var exec = cordova.require('cordova/exec');
+var base64 = require('cordova/base64');
 
 exports.create = function(socketMode, stuff, callback) {
     if (typeof stuff == 'function') {
@@ -41,6 +42,10 @@ exports.bind = function(socketId, address, port, callback) {
     var fail = callback && function() {
         callback(-1000);
     };
+	/*if(platform.id == 'windowsphone') {
+		socketId = socketId.toString;
+		port = port.toString;
+	}*/
     exec(win, fail, 'ChromeSocket', 'bind', [socketId, address, port]);
 };
 
@@ -155,7 +160,17 @@ exports.sendTo = function(socketId, data, address, port, callback) {
         };
         callback(writeInfo);
     };
-    exec(win, fail, 'ChromeSocket', 'sendTo', [{ socketId: socketId, address: address, port: port }, data]);
+
+	//console.log("platform id: " + platform.id);
+	//console.log("data: " + data);
+
+	var args;
+	if(platform.id == 'windowsphone') {
+		args = [socketId, address, port, base64.fromArrayBuffer(data)];
+	} else {
+		args = [{ socketId: socketId, address: address, port: port }, data];
+	}
+	exec(win, fail, 'ChromeSocket', 'sendTo', args);
 };
 
 

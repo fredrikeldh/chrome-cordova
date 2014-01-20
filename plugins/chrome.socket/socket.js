@@ -6,6 +6,36 @@ var platform = cordova.require('cordova/platform');
 var exec = cordova.require('cordova/exec');
 var base64 = require('cordova/base64');
 
+var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+var base64Decode = function (base64) {
+    var bufferLength = base64.length * 0.75,
+        len = base64.length, i, p = 0,
+        encoded1, encoded2, encoded3, encoded4;
+
+    if (base64[base64.length - 1] === "=") {
+        bufferLength--;
+        if (base64[base64.length - 2] === "=") {
+            bufferLength--;
+        }
+    }
+
+    var arraybuffer = new ArrayBuffer(bufferLength),
+    bytes = new Uint8Array(arraybuffer);
+
+    for (i = 0; i < len; i += 4) {
+        encoded1 = chars.indexOf(base64[i]);
+        encoded2 = chars.indexOf(base64[i + 1]);
+        encoded3 = chars.indexOf(base64[i + 2]);
+        encoded4 = chars.indexOf(base64[i + 3]);
+
+        bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
+        bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
+        bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
+    }
+
+    return arraybuffer;
+};
+
 exports.create = function(socketMode, stuff, callback) {
     if (typeof stuff == 'function') {
         callback = stuff;
@@ -122,6 +152,16 @@ exports.recvFrom = function(socketId, bufferSize, callback) {
                 }
             };
         })();
+    } else if(platform.id == 'windowsphone') {
+        win = callback && function (info) {
+            //console.log("info("+typeof(info)+"): " + info);
+            //info = JSON.parse(info);
+            //console.log("infop("+typeof(info)+"): " + info);
+            info.data = base64Decode(info.data);
+            //console.log("data: " + info.data);
+            info.resultCode = info.data.byteLength || 1;
+            callback(info);
+        };
     } else {
         win = callback && function(data, address, port) {
             var recvFromInfo = {

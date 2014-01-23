@@ -89,7 +89,10 @@ exports.read = function(socketId, bufferSize, callback) {
         callback = bufferSize;
         bufferSize = 0;
     }
-    var win = callback && function(data) {
+    var win = callback && function (data) {
+        if (platform.id == 'windowsphone') {
+            data = base64Decode(data);
+        }
         var readInfo = {
             resultCode: data.byteLength || 1,
             data: data
